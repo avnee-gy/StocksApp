@@ -20,7 +20,7 @@ const SearchBar = () => {
     if (query.length >= 2) {
       try {
         const response = await fetch(
-          `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${query}&apikey=2LS8EDYELUBUAHQA`
+          `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${query}&apikey=CAQ2ZPACWSAGMZLH`
         );
         const data = await response.json();
         console.log(data);
@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
     borderColor: colors.blue,
     padding: 20,
     borderRadius: 25,
+    color: colors.blue,
   },
   suggestionItem: {
     padding: 10,
