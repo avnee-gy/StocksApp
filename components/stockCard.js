@@ -36,7 +36,7 @@ const StockCard = ({ stock, type }) => {
       }
     };
 
-    fetchStockData();
+    // fetchStockData();
   }, [stock, type]);
 
   return (
@@ -50,7 +50,8 @@ const StockCard = ({ stock, type }) => {
       <View>
         <View style={styles.info}>
           <Text style={styles.name}>
-            {stockData.Name ? stockData.Name : stock.ticker}
+            {/* {stockData.Name ? "International Business Machines" : stock.ticker} */}
+            {stock.ticker}
           </Text>
           <View
             style={{

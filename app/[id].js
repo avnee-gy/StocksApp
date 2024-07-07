@@ -43,9 +43,9 @@ const StockDetails = () => {
       }
     };
 
-    // fetchStockData();
-    setStockData(companyData);
-    setLoading(false);
+    fetchStockData();
+    // setStockData(companyData);
+    // setLoading(false);
   }, [id]);
 
   if (loading) {

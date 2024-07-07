@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+} from "react-native";
 import axios from "axios";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import StockCard from "../components/stockCard";
 import { top_gainers_losers, colors } from "../utils/data";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { storeData, getData } from "../utils/cache"; // Import utility functions
+import { getData, storeData } from "../utils/cache"; // Import utility functions
 import { Feather } from "@expo/vector-icons";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ThemeSwitch from "../components/themeSwitch";
 
 const API_URL = "https://www.alphavantage.co/query";
-const API_KEY = "2LS8EDYELUBUAHQA";
+const API_KEY = "7Z8VFEAI09PLONBW";
 
 const StockList = ({ type }) => {
   const [stocks, setStocks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,6 +29,7 @@ const StockList = ({ type }) => {
 
       if (cachedData) {
         setStocks(cachedData);
+        setLoading(false);
       } else {
         try {
           const response = await axios.get(
@@ -35,28 +41,46 @@ const StockList = ({ type }) => {
               : response.data.top_losers;
           setStocks(data);
           await storeData(cacheKey, data);
+          setLoading(false);
         } catch (error) {
           console.error("Error fetching stock data:", error);
-          setStocks(
-            type === "gainers"
-              ? top_gainers_losers.top_gainers
-              : top_gainers_losers.top_losers
-          );
+          setError(error);
+          setLoading(false);
         }
       }
     };
 
-    // fetchData();
-    type === "gainers"
-      ? setStocks(top_gainers_losers.top_gainers)
-      : setStocks(top_gainers_losers.top_losers);
+    fetchData();
+    // Uncomment the line above and remove the following lines when API is ready
+    // type === "gainers"
+    //   ? setStocks(top_gainers_losers.top_gainers)
+    //   : setStocks(top_gainers_losers.top_losers);
+    // setLoading(false);
   }, [type]);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.item}>
-      <StockCard stock={item} />
-    </View>
-  );
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.blue} />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Text style={styles.errorText}>Error fetching stock data.</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (stocks.length === 0) {
+    return (
+      <SafeAreaView style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No stocks available.</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ backgroundColor: colors.dark }}>
@@ -131,5 +155,33 @@ const styles = StyleSheet.create({
   },
   item: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.dark,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.dark,
+  },
+  errorText: {
+    color: colors.red,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.dark,
+  },
+  emptyText: {
+    color: colors.light,
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
