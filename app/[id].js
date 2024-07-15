@@ -16,6 +16,7 @@ import { chartData, colors, companyData } from "../utils/data";
 import GraphComponent from "../components/graph";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SearchBar from "../components/searchBar";
+import { storeData, getData } from "../utils/cache";
 
 const StockDetails = () => {
   const { id } = useLocalSearchParams();
@@ -25,24 +26,31 @@ const StockDetails = () => {
 
   useEffect(() => {
     const fetchStockData = async () => {
-      try {
-        const response = await fetch(
-          `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${id}&apikey=VILD8MDCGSBXRYRS`
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+      const cacheKey = `stock_${id}`;
+      const cachedData = await getData(cacheKey);
+
+      if (cachedData) {
+        setStockData(cachedData);
+        setLoading(false);
+      } else {
+        try {
+          const response = await fetch(
+            `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${id}&apikey=VILD8MDCGSBXRYRS`
+          );
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          setStockData(data);
+          await storeData(cacheKey, data);
+          setLoading(false);
+        } catch (error) {
+          console.error("Error fetching stock data:", error);
+          setError(error.message);
+          setLoading(false);
         }
-        const data = await response.json();
-        setStockData(data);
-        console.log(data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching stock data:", error);
-        setError(error.message);
-        setLoading(false);
       }
     };
-
     fetchStockData();
     // setStockData(companyData);
     // setLoading(false);
@@ -95,7 +103,7 @@ const StockDetails = () => {
       </Text>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ paddingHorizontal: 10, paddingVertical: 15 }}>
-          <GraphComponent data={chartData} numPoints={40} />
+          <GraphComponent symbol={stockData.Symbol} numPoints={40} />
         </View>
         <View style={styles.infoContainer}>
           <Text style={styles.sectionTitle}>About {stockData.Name}:</Text>
